@@ -798,52 +798,143 @@ Specify the kinds of objects to create using a prototypical instance,and create 
 >
 > ```java
 > // 抽象构件
->  abstract class Component {
->         public abstract void add(Component c); //增加成员
->         public abstract void remove(Component c); //删除成员
->         public abstract Component getChild(int i); //获取成员
->         public abstract void operation();  //业务方法
->  }
+> abstract class Component {
+>      public abstract void add(Component c); //增加成员
+>      public abstract void remove(Component c); //删除成员
+>      public abstract Component getChild(int i); //获取成员
+>      public abstract void operation();  //业务方法
+> }
 > // 叶子构件
->  class Leaf extends Component {
->         public void add(Component c) {
->             //异常处理或错误提示
->         }
->         public void remove(Component c) {
->             //异常处理或错误提示
->         }
->         public Component getChild(int i) {
->             //异常处理或错误提示
->             return null;
->         }
->         public void operation() {
->             //叶子构件具体业务方法的实现
->         }
+> class Leaf extends Component {
+>      public void add(Component c) {
+>          //异常处理或错误提示
+>      }
+>      public void remove(Component c) {
+>          //异常处理或错误提示
+>      }
+>      public Component getChild(int i) {
+>          //异常处理或错误提示
+>          return null;
+>      }
+>      public void operation() {
+>          //叶子构件具体业务方法的实现
+>      }
 > }
 > // 容器构件
 > class Composite extends Component {
->         private ArrayList<Component> list = new ArrayList<Component>();
+>      private ArrayList<Component> list = new ArrayList<Component>();
 > 
->         public void add(Component c) {
->             list.add(c);
+>      public void add(Component c) {
+>          list.add(c);
+>      }
+>      public void remove(Component c) {
+>          list.remove(c);
+>      }
+>      public Component getChild(int i) {
+>          return (Component)list.get(i);
+>      }
+>      public void operation() {
+>          //容器构件具体业务方法的实现
+>          //递归调用成员构件的业务方法
+>          for(Object obj:list) {
+>              ((Component)obj).operation();
+>          }
+>      }   
+>  }
+> ```
+>
+> 由于在AbstractFile中声明了大量用于管理和访问成员构件的方法，例如add()、remove()等方法，我们不得不在新增的文件类中实现这些方法，提供对应的错误提示和异常处理。为了简化代码，我们有以下两个解决方案
+>
+> - **透明组合模式：**抽象构件Component中声明了所有用于管理成员对象的方法，包括add()、remove()以及getChild()等方法，这样做的好处是确保所有的构件类都有相同的接口。在客户端看来，叶子对象与容器对象所提供的方法是一致的，客户端可以相同地对待所有的对象
+>   - 缺点：不够安全，因为叶子对象和容器对象在本质上是有区别的，运行阶段如果调用叶子节点的add、remove、getchild等方法可能会出错（如果没有提供相应的错误处理代码）
+>
+> ![2019060910048_1.png](img/2019060910048_1.png)
+>
+> ```java
+> //解决方案一： 将叶子构件的add()、remove()等方法的实现代码移至AbstractFile类中，由AbstractFile提供统一的默认实现，代码如下所示：
+> 
+>     //提供默认实现的抽象构件类
+>     abstract class AbstractFile {
+>         public void add(AbstractFile file) {
+>             System.out.println("对不起，不支持该方法！");
 >         }
->         public void remove(Component c) {
->             list.remove(c);
+> 
+>         public void remove(AbstractFile file) {
+>             System.out.println("对不起，不支持该方法！");
 >         }
->         public Component getChild(int i) {
->             return (Component)list.get(i);
+> 
+>         public AbstractFile getChild(int i) {
+>             System.out.println("对不起，不支持该方法！");
+>             return null;
 >         }
->         public void operation() {
->             //容器构件具体业务方法的实现
->             //递归调用成员构件的业务方法
->             for(Object obj:list) {
->                 ((Component)obj).operation();
->             }
->         }   
+> 
+>         public abstract void killVirus();
+>     }
+> //如果客户端代码针对抽象类AbstractFile编程，在调用文件对象的这些方法时将出现错误提示。如果不希望出现任何错误提示，我们可以在客户端定义文件对象时不使用抽象层，而直接使用具体叶子构件本身，客户端代码片段如下所示：
+>     class Client {
+>         public static void main(String args[]) {
+>             //不能透明处理叶子构件
+>             ImageFile file1,file2;
+>             TextFile file3,file4;
+>             VideoFile file5;
+>             AbstractFile folder1,folder2,folder3,folder4;
+>             //其他代码省略
+>           }
 >     }
 > ```
 >
-> **透明组合模式与安全组合模式：**
+> - **安全组合模式**：抽象构件Component中没有声明任何用于管理成员对象的方法，而是在Composite类中声明并实现这些方法。这种做法是安全的，因为根本不向叶子对象提供这些管理成员对象的方法，对于叶子对象，客户端不可能调用到这些方法
+>   - **缺点**：不够透明，因为叶子构件和容器构件具有不同的方法，且容器构件中那些用于管理成员对象的方法没有在抽象构件类中定义，因此客户端不能完全针对抽象编程，必须有区别地对待叶子构件和容器构件
+>
+> ![2019060910048_2.png](img/2019060910048_2.png)
+>
+> ```java
+> //在抽象构件AbstractFile中不声明任何用于访问和管理成员构件的方法   
+> abstract class AbstractFile {
+>         public abstract void killVirus();
+>     }
+> // 客户端不得不使用容器类本身来声明容器构件对象，否则无法访问其中新增的add()、remove()等方法，如果客户端一致性地对待叶子和容器，将会导致容器构件的新增对客户端不可见，客户端代码对于容器构件无法再使用抽象构件来定义
+>   class Client {
+>         public static void main(String args[]) {
+> 
+>             AbstractFile file1,file2,file3,file4,file5;
+>             Folder folder1,folder2,folder3,folder4; //不能透明处理容器构件
+>             //其他代码省略
+>         }
+>     }
+> ```
+>
+> **优点：**
+>
+> - 组合模式可以清楚地定义分层次的复杂对象，表示对象的全部或部分层次，它让客户端忽略了层次的差异，方便对整个层次结构进行控制。
+> - 客户端可以一致地使用一个组合结构或其中单个对象，不必关心处理的是单个对象还是整个组合结构，简化了客户端代码
+> - 在组合模式中增加新的容器构件和叶子构件都很方便，无须对现有类库进行任何修改，符合“开闭原则”
+> - 组合模式为树形结构的面向对象实现提供了一种灵活的解决方案，通过叶子对象和容器对象的递归组合，可以形成复杂的树形结构，但对树形结构的控制却非常简单
+>
+> **缺点：**
+>
+> - 增加新构件时很难对容器中的构件类型进行限制。有时候我们希望一个容器中只能有某些特定类型的对象，例如在某个文件夹中只能包含文本文件，使用组合模式时，不能依赖类型系统来施加这些约束，因为它们都来自于相同的抽象层，在这种情况下，必须通过在运行时进行类型检查来实现，这个实现过程较为复杂
+>
+> **适用场景：**
+>
+> - 在具有整体和部分的层次结构中，希望通过一种方式忽略整体与部分的差异，客户端可以一致地对待它们
+> - 在一个使用面向对象语言开发的系统中需要处理一个树形结构
+> - 在一个系统中能够分离出叶子对象和容器对象，而且它们的类型不固定，需要增加一些新的类型
+
+
+
+#### 10. 装饰者模式（扩展系统功能）
+
+> **定义：**动态地给一个对象增加一些额外的职责，就增加对象功能来说，装饰模式比生成子类实现更为灵活。装饰模式是一种对象结构型模式
+>
+> **装饰者模式角色：**
+>
+> ![1614305003763](img/1614305003763.png)
+>
+> - Component（抽象构件）：它是具体构件和抽象装饰类的共同父类，声明了在具体构件中实现的业务方法，它的引入可以使客户端以一致的方式处理未被装饰的对象以及装饰之后的对象，实现客户端的透明操作
+> - ConcreteComponent（具体构件）：它是抽象构件类的子类，用于定义具体的构件对象，实现了在抽象构件中声明的方法，装饰器可以给它增加额外的职责（方法）
+> - Decorator（抽象装饰类）：它也是抽象构件类的子类，用于给具体构件增加职责，但是具体职责在其子类中实现。它维护一个指向抽象构件对象的引用，通过该引用可以调用装饰之前构件对象的方法，并通过其子类扩展该方法，以达到装饰的目的
+> - ConcreteDecorator（具体装饰类）：它是抽象装饰类的子类，负责向构件添加新的职责。每一个具体装饰类都定义了一些新的行为，它可以调用在抽象装饰类中定义的方法，并可以增加新的方法用以扩充对象的行为
 >
 > 
 
@@ -851,9 +942,33 @@ Specify the kinds of objects to create using a prototypical instance,and create 
 
 
 
+#### 11. 外观模式 
 
+#### 12. 享元模式
 
+#### 13. 代理模式 ====
 
+#### 14. 职责链模式
+
+#### 15.命令模式 
+
+#### 16.解释器模式 ====
+
+#### 17.迭代器模式
+
+#### 18.中介者模式
+
+#### 19.备忘录模式 
+
+#### 20.观察者模式
+
+#### 21.状态模式 
+
+#### 22.策略模式
+
+#### 23.模板方法模式 ====
+
+#### 24.访问者模式
 
 
 
