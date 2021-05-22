@@ -1,7 +1,5 @@
 package com.xiaoyi.builder_pattern;
 
-import com.xiaoyi.factory_method.XmlUtil;
-
 /**
  * Created on 2021/2/23.
  *

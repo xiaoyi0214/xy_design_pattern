@@ -1,8 +1,5 @@
 package com.xiaoyi.prototype_pattern.prototype_manager;
 
-import com.xiaoyi.prototype_pattern.WeeklyLog;
-import com.xiaoyi.prototype_pattern.WeeklyLogDeepClone;
-
 import java.util.Hashtable;
 
 /**

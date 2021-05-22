@@ -6,7 +6,12 @@
 
     <groupId>com.xiaoyi</groupId>
     <artifactId>xy_design_pattern</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>design-pattern-beauty</module>
+        <module>design-pattern</module>
+    </modules>
 
 
 </project>
