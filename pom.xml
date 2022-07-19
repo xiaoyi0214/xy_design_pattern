@@ -11,6 +11,7 @@
     <modules>
         <module>design-pattern-beauty</module>
         <module>design-pattern</module>
+        <module>design_pattern_template</module>
     </modules>
 
 
