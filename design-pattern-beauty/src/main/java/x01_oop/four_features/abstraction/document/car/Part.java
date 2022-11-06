@@ -8,7 +8,7 @@ import java.util.Map;
  * @author XiaoYi
  * Created on 2022/11/6.
  */
-public class Part extends AbstractDocument implements HasModel, HasPrice, HasType{
+public class Part extends AbstractDocument implements HasModel, HasPrice, HasType, HasFactory{
     public Part(Map<String, Object> properties) {
         super(properties);
     }

@@ -23,5 +23,10 @@ public enum CarPropertyEnum {
     /**
      * 组件版本
      */
-    MODEL
+    MODEL,
+
+    /**
+     * 厂商
+     */
+    FACTORY,
 }
